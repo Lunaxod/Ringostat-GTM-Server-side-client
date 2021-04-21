@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-homepage: "https://www.example.com"
-documentation: "https://www.example.com/documentation"
+homepage: "https://ringostat.com"
+documentation: "https://docs.ringostat.com/"
 versions:
+  - sha: 75a9c7b1fc34216cf9c96b772b0c5cd8c9ce410f
+    changeNotes: Fix issues after review
   - sha: afe16cc4a93037826885ee6fc68da34755f0550c
     changeNotes: Initial Version
