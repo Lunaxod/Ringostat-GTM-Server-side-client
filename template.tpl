@@ -14,6 +14,7 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "Ringostat client",
+  "categories": ["ANALYTICS", "CONVERSIONS", "SALES"],
   "brand": {
     "id": "Ringostat",
     "displayName": "Custom Template",
@@ -48,9 +49,9 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const claimRequest = require('claimRequest');
 const getRequestPath = require('getRequestPath');
 if (getRequestPath().substring(0,4) === '/rng') {
+  const claimRequest = require('claimRequest');
   claimRequest();
   const getCookie = require('getCookieValues');
   const getRemoteAddress = require('getRemoteAddress');
