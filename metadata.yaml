@@ -15,6 +15,8 @@
 homepage: "https://ringostat.com"
 documentation: "https://docs.ringostat.com/"
 versions:
+  - sha: 3fce2c48b18d241ce5dc4ed0aca9e983847094db
+    changeNotes: Fixed issues with some endpoints
   - sha: 00dcb8757ae7c606c39b436ecb901afe38118e55
     changeNotes: Added categories to teplate, small optimization
   - sha: 75a9c7b1fc34216cf9c96b772b0c5cd8c9ce410f
