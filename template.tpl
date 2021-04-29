@@ -47,6 +47,30 @@ ___TEMPLATE_PARAMETERS___
         ]
       }
     ]
+  },
+  {
+    "type": "RADIO",
+    "name": "sameSiteOption",
+    "displayName": "sameSiteOption",
+    "radioItems": [
+      {
+        "value": "Lax",
+        "displayValue": "Lax"
+      },
+      {
+        "value": "none",
+        "displayValue": "none"
+      }
+    ],
+    "simpleValueType": true,
+    "defaultValue": "none"
+  },
+  {
+    "type": "TEXT",
+    "name": "cookieDomain",
+    "displayName": "cookieDomain",
+    "simpleValueType": true,
+    "defaultValue": "auto"
   }
 ]
 
@@ -70,7 +94,12 @@ const setResponseStatus = require('setResponseStatus');
 const getRequestQueryString = require('getRequestQueryString');
 const getRequestMethod = require('getRequestMethod');
 const encodeUriComponent = require('encodeUriComponent');
+const getCookieValues = require('getCookieValues');
 const JSON = require('JSON');
+
+const sameSiteOption = (data.sameSiteOption) ? data.sameSiteOption : 'none';
+const cookieDomain = (data.cookieDomain) ? data.cookieDomain : 'auto';
+    let projectHash = data.projectHash;
 
 
 const forwardUrl = () => {
@@ -85,43 +114,6 @@ let ua = getRequestHeader('user-agent');
 let ip = getRemoteAddress();
 let requestDir = getRequestPath().substring(4,8);
 
-const addCookies = () => {
-  if (headers['set-cookie'])
-    for (let i=0; i<headers['set-cookie'].length; i++) {
-      let cook = headers['set-cookie'][i].split(";");
-      let name = cook[0].split("=")[0];
-      let value = cook[0].split("=")[1];
-      setCookie(name, value, {
-        domain: 'auto',
-        'max-age': 63072000,
-        path: '/',
-        secure: true,
-        sameSite: 'lax'
-      });
-    }
-
-  const rngst = getCookie('rngst');
-  if (rngst && rngst.length) {
-    setCookie('rngst', rngst[0], {
-      domain: 'auto',
-      'max-age': 63072000,
-      path: '/',
-      secure: true,
-      sameSite: 'lax'
-    });
-  }
-  const rngst2 = getCookie('rngst2');
-  if (rngst2 && rngst2.length) {
-    setCookie('rngst2', rngst2[0], {
-      domain: 'auto',
-      'max-age': 63072000,
-      path: '/',
-      secure: true,
-      sameSite: 'lax'
-    });
-  }
-};
-
 const setResponseHeaders = (headers) => {
   for (const key in headers) {
     if (key !== 'access-control-allow-origin' && key !== 'set-cookie') setResponseHeader(key, headers[key]);
@@ -133,7 +125,40 @@ const proxyResponse = (response, headers, statusCode) => {
   setResponseStatus(statusCode);
   setResponseBody(response);
   setResponseHeaders(headers);
-  addCookies();
+  if (headers['set-cookie'])
+    for (let i=0; i<headers['set-cookie'].length; i++) {
+      let cook = headers['set-cookie'][i].split(";");
+      let name = cook[0].split("=")[0];
+      let value = cook[0].split("=")[1];
+      setCookie(name, value, {
+        domain: cookieDomain,
+        'max-age': 63072000,
+        path: '/',
+        secure: true,
+        sameSite: sameSiteOption
+      });
+    }
+  const rngst = getCookie('rngst');
+  if (rngst && rngst.length) {
+    setCookie('rngst', rngst[0], {
+      domain: cookieDomain,
+      'max-age': 63072000,
+      path: '/',
+      secure: true,
+      sameSite: sameSiteOption
+    });
+  }
+  const rngst2 = getCookie('rngst2');
+  if (rngst2 && rngst2.length) {
+    setCookie('rngst2', rngst2[0], {
+      domain: cookieDomain,
+      'max-age': 63072000,
+      path: '/',
+      secure: true,
+      sameSite: sameSiteOption
+    });
+  }
+
   returnResponse();
 };
 
@@ -151,7 +176,6 @@ if (getRequestPath() === '/rng/ap/ipinfo') {
 let requestDomain;
 switch (requestDir) {
   case '/v4/':
-    let projectHash = data.projectHash;
     let SCRIPT_SRC = '/v4/' + encodeUriComponent(projectHash.substring(0, 2)) + '/' + encodeUriComponent(projectHash) + '.js';
     if (getRequestPath().substring(4) === SCRIPT_SRC) {
       requestDomain = 'https://script.ringostat.com/v4';
@@ -172,6 +196,8 @@ switch (requestDir) {
   default:
     return;
 }
+
+
 let headers = {};
 if (getRequestHeader('Content-Type')) headers['Content-Type'] = getRequestHeader('Content-Type');
 if (getRequestHeader('Accept-Language')) headers['Accept-Language'] = getRequestHeader('Accept-Language');
@@ -179,6 +205,15 @@ if (getRequestHeader('Cache-Control')) headers['Cache-Control'] = getRequestHead
 if (getRequestHeader('upgrade-insecure-requests')) headers['upgrade-insecure-requests'] = getRequestHeader('upgrade-insecure-requests');
 if (getRequestHeader('User-Agent')) headers['User-Agent'] = getRequestHeader('User-Agent');
 if (getRequestHeader('Accept')) headers.Accept = getRequestHeader('Accept');
+if (getCookieValues('ringo_hasCall')) {
+  
+  let cookies = 'ringo_hasCall='+getCookieValues('ringo_hasCall',true)[0]+';';
+  cookies += 'ringo_calldate='+getCookieValues('ringo_calldate',true)[0]+';';
+  cookies += 'ringo_userfield='+getCookieValues('ringo_userfield',true)[0]+';';
+  cookies += 'ringo_hash='+getCookieValues('ringo_hash',true)[0]+';';  
+  headers.Cookie = cookies;
+}
+
 
 let url = requestDomain+forwardUrl();
 sendHttpRequest(url, (statusCode, headers, body) => {
